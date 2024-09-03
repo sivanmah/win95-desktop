@@ -1,13 +1,13 @@
 import { useState } from "react";
 import clsx from "clsx";
 
-export default function StartMenuButton() {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  const toggleStartMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
+export default function StartMenuButton({
+  onClick,
+  isOpen,
+}: {
+  onClick: () => void;
+  isOpen: boolean;
+}) {
   return (
     <button
       className={clsx(
@@ -23,7 +23,7 @@ export default function StartMenuButton() {
           "border-t-2 border-l-2 border-gray-500": isOpen, // Apply this class when isOpen is true
           "border-b-2 border-r-2 border-gray-500": !isOpen, // Apply this class when isOpen is false
         })}
-        onClick={toggleStartMenu}
+        onClick={onClick}
       >
         {/* eslint-disable-next-line */}
         <img src="/startmenu.png" alt="Start Menu" width="24em" />
