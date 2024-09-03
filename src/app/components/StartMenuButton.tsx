@@ -13,15 +13,15 @@ export default function StartMenuButton({
       className={clsx(
         "border-2 border-b-black border-r-black text-s w-18 cursor-default",
         {
-          "border-b-white border-r-white border-t-black border-l-black": isOpen, // Apply this class when isOpen is true
-          "border-b-black border-r-black": !isOpen, // Apply this class when isOpen is false
+          "border-b-white border-r-white border-t-black border-l-black": isOpen,
+          "border-b-black border-r-black": !isOpen,
         }
       )}
     >
       <div
         className={clsx("flex items-center justify-center gap-x-1 font-bold", {
-          "border-t-2 border-l-2 border-gray-500": isOpen, // Apply this class when isOpen is true
-          "border-b-2 border-r-2 border-gray-500": !isOpen, // Apply this class when isOpen is false
+          "border-t-2 border-l-2 border-gray-500": isOpen,
+          "border-b-2 border-r-2 border-gray-500": !isOpen,
         })}
         onClick={onClick}
       >

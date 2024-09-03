@@ -19,8 +19,12 @@ const config: Config = {
       backgroundColor: {
         "win95-teal": "#008080",
         "taskbar-bg": "#C0C0C0",
+        "window-top": "#0000AA",
       },
       colors: {},
+      fontWeight: {
+        thin: 200,
+      },
     },
   },
   plugins: [],
