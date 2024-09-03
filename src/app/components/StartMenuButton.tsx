@@ -1,12 +1,11 @@
 import { useState } from "react";
 import clsx from "clsx";
 
-export default function StartMenu() {
+export default function StartMenuButton() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const toggleStartMenu = () => {
     setIsOpen(!isOpen);
-    console.log("Start Menu is", isOpen ? "closed" : "open");
   };
 
   return (
