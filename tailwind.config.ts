@@ -22,9 +22,6 @@ const config: Config = {
         "window-top": "#0000AA",
       },
       colors: {},
-      fontWeight: {
-        thin: 200,
-      },
     },
   },
   plugins: [],

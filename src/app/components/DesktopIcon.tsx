@@ -23,7 +23,7 @@ export default function DesktopIcon({
           draggable={false}
         />
       </div>
-      <span className="text-xs text-white font-thin">{name}</span>
+      <span className="text-xs text-white">{name}</span>
     </div>
   );
 }
