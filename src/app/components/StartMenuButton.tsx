@@ -1,5 +1,5 @@
-import { useState } from "react";
 import clsx from "clsx";
+import Image from "next/image";
 
 export default function StartMenuButton({
   onClick,
@@ -26,7 +26,13 @@ export default function StartMenuButton({
         onClick={onClick}
       >
         {/* eslint-disable-next-line */}
-        <img src="/startmenu.png" alt="Start Menu" width="24em" />
+        <Image
+          src="/startmenu.png"
+          alt="Start Menu"
+          width={24}
+          height={24}
+          draggable={false}
+        />
         Start
       </div>
     </button>

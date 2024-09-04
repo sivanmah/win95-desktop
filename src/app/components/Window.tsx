@@ -1,24 +1,68 @@
+import React, { useState, useRef } from "react";
 import Draggable from "react-draggable";
-import Notepad from "@/app/components/applications/Notepad";
 import Image from "next/image";
+import Notepad from "@/app/components/applications/Notepad";
+
+let globalZIndex = 1000;
 
 export default function Window({
+  id,
   name,
   onClose,
 }: {
+  id: string;
   name: string;
   onClose: () => void;
 }) {
+  const [zIndex, setZIndex] = useState(globalZIndex);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const nodeRef = useRef(null);
+
+  const bringToFront = () => {
+    globalZIndex += 1;
+    setZIndex(globalZIndex);
+  };
+
+  const onDrag = (e: any, data: { x: number; y: number }) => {
+    setPosition({ x: data.x, y: data.y });
+  };
+
+  const renderApp = () => {
+    switch (name) {
+      case "Notepad":
+        return <Notepad />;
+      // Add cases for other applications here
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Draggable handle=".bg-window-top" cancel=".bg-taskbar-bg">
-      <div>
+    <Draggable
+      nodeRef={nodeRef}
+      handle=".bg-window-top"
+      cancel=".bg-taskbar-bg"
+      position={position}
+      onStart={bringToFront}
+      onDrag={onDrag}
+      onMouseDown={bringToFront}
+    >
+      <div
+        ref={nodeRef}
+        style={{
+          position: "absolute",
+          zIndex: zIndex,
+          backgroundColor: "white",
+          border: "1px solid black",
+        }}
+      >
         <div className="bg-window-top cursor-default select-none w-80 flex justify-between items-center px-2">
           <span className="text-white">{name}</span>
-          <div className="bg-taskbar-bg border-2 border-b-black border-r-black text-s w-5 h-5 cursor-default flex items-center justify-center active:border-b-white active:border-r-white active:border-t-black active:border-l-black">
-            <div
-              className="flex items-center justify-center font-bold border-b-2 border-r-2 w-4 h-4 border-gray-500 active:border-t-2 active:border-l-2 active:border-gray-500 active:border-b-0 active:border-r-0"
-              onClick={onClose}
-            >
+          <div
+            onClick={onClose}
+            className="group bg-taskbar-bg border-2 border-b-black border-r-black text-s w-5 h-5 cursor-default flex items-center justify-center active:border-b-white active:border-r-white active:border-t-black active:border-l-black"
+          >
+            <div className="flex items-center justify-center font-bold border-b-2 border-r-2 w-4 h-4 border-gray-500 group-active:border-t-2 group-active:border-l-2 group-active:border-gray-500 group-active:border-b-0 group-active:border-r-0">
               <Image
                 src="/x-button.png"
                 alt="Close"
@@ -29,7 +73,7 @@ export default function Window({
             </div>
           </div>
         </div>
-        <div>{name === "Notepad" && <Notepad />}</div>
+        <div>{renderApp()}</div>
       </div>
     </Draggable>
   );

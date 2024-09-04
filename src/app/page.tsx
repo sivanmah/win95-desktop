@@ -5,17 +5,24 @@ import DesktopIcon from "@/app/components/DesktopIcon";
 import Window from "@/app/components/Window";
 import { useState } from "react";
 
-export default function Home() {
-  const [isWindowOpen, setIsWindowOpen] = useState(false);
-  const [windowName, setWindowName] = useState("");
+interface WindowInfo {
+  id: string;
+  name: string;
+}
 
-  const handleCloseWindow = () => {
-    setIsWindowOpen(false);
+export default function Home() {
+  const [windows, setWindows] = useState<WindowInfo[]>([]);
+
+  const handleCloseWindow = (id: string) => {
+    setWindows(windows.filter((window) => window.id !== id));
   };
 
   const handleOpenWindow = (name: string) => {
-    setIsWindowOpen(true);
-    setWindowName(name);
+    const newWindow: WindowInfo = {
+      id: `${name}-${Date.now()}`,
+      name: name,
+    };
+    setWindows([...windows, newWindow]);
   };
 
   return (
@@ -24,11 +31,16 @@ export default function Home() {
         <DesktopIcon
           icon="notepad"
           name="Notepad"
-          onDoubleClick={handleOpenWindow}
+          onDoubleClick={() => handleOpenWindow("Notepad")}
         />
-        {isWindowOpen && (
-          <Window name={windowName} onClose={handleCloseWindow} />
-        )}
+        {windows.map((window) => (
+          <Window
+            key={window.id}
+            id={window.id}
+            name={window.name}
+            onClose={() => handleCloseWindow(window.id)}
+          />
+        ))}
       </div>
       <Taskbar />
     </div>

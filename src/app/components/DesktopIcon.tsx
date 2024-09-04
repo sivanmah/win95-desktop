@@ -1,14 +1,16 @@
 import Image from "next/image";
 
+interface DesktopIconProps {
+  icon: string;
+  name: string;
+  onDoubleClick: (name: string) => void;
+}
+
 export default function DesktopIcon({
   icon,
   name,
   onDoubleClick,
-}: {
-  icon: string;
-  name: string;
-  onDoubleClick: (name: string) => void;
-}) {
+}: DesktopIconProps) {
   return (
     <div
       onDoubleClick={() => onDoubleClick(name)}
