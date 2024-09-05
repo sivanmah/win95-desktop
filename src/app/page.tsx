@@ -4,6 +4,8 @@ import Taskbar from "@/app/components/Taskbar";
 import DesktopIcon from "@/app/components/DesktopIcon";
 import Window from "@/app/components/Window";
 import { useState } from "react";
+import notepadIcon from "@/../public/icons/notepad.png";
+import chatbotIcon from "@/../public/icons/chatbot.png";
 
 interface WindowInfo {
   id: string;
@@ -29,12 +31,12 @@ export default function Home() {
     <div className="w-screen h-screen overflow-hidden bg-win95-teal">
       <div className="flex flex-col items-start flex-wrap gap-4 p-4">
         <DesktopIcon
-          icon="notepad"
+          icon={notepadIcon}
           name="Notepad"
           onDoubleClick={() => handleOpenWindow("Notepad")}
         />
         <DesktopIcon
-          icon="chatbot"
+          icon={chatbotIcon}
           name="Chatbot"
           onDoubleClick={() => handleOpenWindow("Chatbot")}
         />
