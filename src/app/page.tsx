@@ -27,11 +27,16 @@ export default function Home() {
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-win95-teal">
-      <div className="flex flex-wrap gap-4 p-4">
+      <div className="flex flex-col items-start flex-wrap gap-4 p-4">
         <DesktopIcon
           icon="notepad"
           name="Notepad"
           onDoubleClick={() => handleOpenWindow("Notepad")}
+        />
+        <DesktopIcon
+          icon="chatbot"
+          name="Chatbot"
+          onDoubleClick={() => handleOpenWindow("Chatbot")}
         />
         {windows.map((window) => (
           <Window

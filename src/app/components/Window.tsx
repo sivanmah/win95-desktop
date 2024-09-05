@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Draggable from "react-draggable";
 import Image from "next/image";
 import Notepad from "@/app/components/applications/Notepad";
+import Chatbot from "@/app/components/applications/Chatbot";
 
 let globalZIndex = 1000;
 
@@ -31,6 +32,8 @@ export default function Window({
     switch (name) {
       case "Notepad":
         return <Notepad />;
+      case "Chatbot":
+        return <Chatbot />;
       // Add cases for other applications here
       default:
         return null;
