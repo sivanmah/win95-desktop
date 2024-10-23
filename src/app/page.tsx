@@ -1,11 +1,11 @@
 "use client";
-
+import { useState } from "react";
 import Taskbar from "@/app/components/Taskbar";
 import DesktopIcon from "@/app/components/DesktopIcon";
 import Window from "@/app/components/Window";
-import { useState } from "react";
 import notepadIcon from "@/../public/icons/notepad.png";
 import chatbotIcon from "@/../public/icons/chatbot.png";
+import chatroomIcon from "@/../public/icons/chatroom.png";
 
 interface WindowInfo {
   id: string;
@@ -39,6 +39,11 @@ export default function Home() {
           icon={chatbotIcon}
           name="Chatbot"
           onDoubleClick={() => handleOpenWindow("Chatbot")}
+        />
+        <DesktopIcon
+          icon={chatroomIcon}
+          name="Chatroom"
+          onDoubleClick={() => handleOpenWindow("Chatroom")}
         />
         {windows.map((window) => (
           <Window
