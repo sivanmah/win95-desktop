@@ -3,6 +3,7 @@ import Draggable from "react-draggable";
 import Image from "next/image";
 import Notepad from "@/app/components/applications/Notepad";
 import Chatbot from "@/app/components/applications/Chatbot";
+import Chatroom from "@/app/components/applications/Chatroom";
 
 let globalZIndex = 1000;
 
@@ -10,9 +11,11 @@ export default function Window({
   id,
   name,
   onClose,
+  displayName,
 }: {
   id: string;
   name: string;
+  displayName: string;
   onClose: () => void;
 }) {
   const [zIndex, setZIndex] = useState(globalZIndex);
@@ -34,7 +37,8 @@ export default function Window({
         return <Notepad />;
       case "Chatbot":
         return <Chatbot />;
-      // Add cases for other applications here
+      case "Chatroom":
+        return <Chatroom displayName={displayName} />;
       default:
         return null;
     }

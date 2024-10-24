@@ -26,6 +26,9 @@ export function middleware(req: NextRequest) {
     });
   }
 
+  const displayName = existingCookie?.value || randomName;
+  res.headers.set("display-name", displayName);
+
   return res;
 }
 

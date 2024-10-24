@@ -13,7 +13,7 @@ interface WindowInfo {
   name: string;
 }
 
-export default function Home() {
+export default function Home({ displayName }: { displayName: string }) {
   const [windows, setWindows] = useState<WindowInfo[]>([]);
 
   const handleCloseWindow = (id: string) => {
@@ -51,6 +51,7 @@ export default function Home() {
             key={window.id}
             id={window.id}
             name={window.name}
+            displayName={displayName}
             onClose={() => handleCloseWindow(window.id)}
           />
         ))}

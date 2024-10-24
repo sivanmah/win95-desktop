@@ -27,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={w95fa.className}>{children}</body>
+      <body className={w95fa.className} suppressHydrationWarning={true}>
+        {children}
+      </body>
     </html>
   );
 }
