@@ -16,9 +16,9 @@ export function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
 
-  const existingCookie = req.cookies.get("display-name");
+  const existingName = req.cookies.get("display-name");
 
-  if (!existingCookie) {
+  if (!existingName) {
     res.cookies.set("display-name", randomName, {
       httpOnly: true,
       secure: true,
@@ -26,7 +26,7 @@ export function middleware(req: NextRequest) {
     });
   }
 
-  const displayName = existingCookie?.value || randomName;
+  const displayName = existingName?.value || randomName;
   res.headers.set("display-name", displayName);
 
   return res;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, FormEvent } from "react";
 import { Message } from "@/types/chat";
-import ColorPicker from "./ColorPicker";
+import ColorPicker from "../ui/ColorPicker";
 
 export default function Chatroom({ displayName }: { displayName: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
