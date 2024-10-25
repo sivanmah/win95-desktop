@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, FormEvent } from "react";
 import { Message } from "@/types/chat";
+import ColorPicker from "./ColorPicker";
 
 export default function Chatroom({ displayName }: { displayName: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -90,14 +91,17 @@ export default function Chatroom({ displayName }: { displayName: string }) {
             className="w-full p-2 border border-gray-700 outline-none"
             placeholder="Type a message..."
           />
-          <button
-            type="submit"
-            className="group mt-2 bg-taskbar-bg border-2 border-b-black border-r-black w-20 h-6 cursor-default flex items-center justify-center active:border-b-white active:border-r-white active:border-t-black active:border-l-black"
-          >
-            <div className="select-none flex items-center justify-center font-bold border-b-2 border-r-2 w-20 h-5 border-gray-500 group-active:border-t-2 group-active:border-l-2 group-active:border-gray-500 group-active:border-b-0 group-active:border-r-0">
-              Send
-            </div>
-          </button>
+          <div className="flex justify-between items-center mt-2">
+            <button
+              type="submit"
+              className="group mt-2 bg-taskbar-bg border-2 border-b-black border-r-black w-20 h-6 cursor-default flex items-center justify-center active:border-b-white active:border-r-white active:border-t-black active:border-l-black"
+            >
+              <div className="select-none flex items-center justify-center font-bold border-b-2 border-r-2 w-20 h-5 border-gray-500 group-active:border-t-2 group-active:border-l-2 group-active:border-gray-500 group-active:border-b-0 group-active:border-r-0">
+                Send
+              </div>
+            </button>
+            <ColorPicker displayName={displayName} />
+          </div>
         </div>
       </form>
     </div>
