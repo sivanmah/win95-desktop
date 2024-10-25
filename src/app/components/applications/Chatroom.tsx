@@ -90,6 +90,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
             onChange={(e) => setInput(e.target.value)}
             className="w-full p-2 border border-gray-700 outline-none"
             placeholder="Type a message..."
+            autoFocus
           />
           <div className="flex justify-between items-center mt-2">
             <button
