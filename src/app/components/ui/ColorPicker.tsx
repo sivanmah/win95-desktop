@@ -1,12 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import ColorSwatch from "./ColorSwatch";
 
 export default function ColorPicker({ displayName }: { displayName: string }) {
   const [selectedColor, setSelectedColor] = useState("text-blue-500");
 
+  useEffect(() => {
+    const savedColor = Cookies.get("display-name-color");
+    if (savedColor) {
+      setSelectedColor(savedColor);
+    }
+  }, []);
+
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
-    console.log(color);
+    Cookies.set("display-name-color", color, { expires: 30 });
   };
 
   return (
