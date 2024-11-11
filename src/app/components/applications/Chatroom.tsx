@@ -33,10 +33,18 @@ export default function Chatroom({ displayName }: { displayName: string }) {
 
   useEffect(() => {
     scrollToBottom();
+
     if (!socketRef.current) {
       console.log("Setting up WebSocket connection...");
-      const socket = new WebSocket("ws://localhost:8080");
+      const socket = new WebSocket("wss://win95-sivan.duckdns.org/ws");
+
       socketRef.current = socket;
+
+      const keepAliveInterval = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "keepalive" }));
+        }
+      }, 30000); // Send keepalive every 10 seconds
 
       socket.addEventListener("open", () => {
         console.log("Connected to WebSocket server");
@@ -52,24 +60,21 @@ export default function Chatroom({ displayName }: { displayName: string }) {
         } else {
           receivedMessage = JSON.parse(event.data);
         }
-        setMessages((prevMessages) => [...prevMessages, receivedMessage]);
-      });
 
-      socket.addEventListener("close", () => {
-        console.log("WebSocket connection closed.");
-      });
-
-      return () => {
-        if (
-          socketRef.current &&
-          socketRef.current.readyState === WebSocket.OPEN
-        ) {
-          console.log("Cleaning up WebSocket connection...");
-          socketRef.current.close();
+        if (receivedMessage.content && receivedMessage.content.trim()) {
+          setMessages((prevMessages) => [...prevMessages, receivedMessage]);
         }
+      });
+
+      // Cleanup function to run on component unmount
+      return () => {
+        console.log("Cleaning up WebSocket connection...");
+        clearInterval(keepAliveInterval);
+        socket.close();
+        socketRef.current = null; // Optional: reset the ref to null
       };
     }
-  }, [messages]);
+  }, []);
 
   return (
     <div className="flex flex-col h-80 w-80 bg-taskbar-bg">
