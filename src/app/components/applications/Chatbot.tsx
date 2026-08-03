@@ -14,15 +14,23 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([SYSTEM_MESSAGE]);
   const [input, setInput] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
   };
 
-  useEffect(scrollToBottom, [messages]);
+  useEffect(() => {
+    scrollToBottom();
+    if (!awaitingResponse) {
+      document.getElementById("chatbot-input")?.focus();
+    }
+  }, [messages, awaitingResponse]);
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
+
+    setAwaitingResponse(true);
 
     const newMessages = [
       ...messages,
@@ -53,6 +61,7 @@ export default function Chatbot() {
         { role: "assistant", content: "Sorry, I encountered an error." },
       ]);
     }
+    setAwaitingResponse(false);
   };
 
   return (
@@ -79,7 +88,9 @@ export default function Chatbot() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           className="w-full p-2 border border-gray-700 outline-none"
+          id="chatbot-input"
           placeholder="Type a message..."
+          disabled={awaitingResponse}
         />
         <div
           onClick={sendMessage}
