@@ -14,9 +14,15 @@ export function middleware(req: NextRequest) {
     style: "capital",
   });
 
-  const res = NextResponse.next();
-
   const existingName = req.cookies.get("display-name");
+  const displayName = existingName?.value || randomName;
+
+  // Has to go on the *request* headers. Setting it on the response instead means
+  // headers() in page.tsx never sees it, and every visitor renders as "Anonymous".
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("display-name", displayName);
+
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
 
   if (!existingName) {
     res.cookies.set("display-name", randomName, {
@@ -25,9 +31,6 @@ export function middleware(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 30,
     });
   }
-
-  const displayName = existingName?.value || randomName;
-  res.headers.set("display-name", displayName);
 
   return res;
 }

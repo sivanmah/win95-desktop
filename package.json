@@ -5,14 +5,16 @@
   "type": "module",
   "packageManager": "pnpm@10.27.0",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "vercel dev",
     "build": "next build",
-    "start": "node server.js",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@types/js-cookie": "^3.0.6",
+    "@vercel/functions": "^3.7.6",
     "clsx": "^2.1.1",
+    "ioredis": "^6.0.0",
     "js-cookie": "^3.0.5",
     "next": "^14.2.16",
     "openai": "^4.57.2",
