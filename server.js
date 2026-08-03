@@ -12,9 +12,13 @@ import { NAME_COLORS, toColorKey } from "./src/lib/colors.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
-const wsPort = Number(process.env.WS_PORT) || 8080;
 const app = next({ dev });
 const handle = app.getRequestHandler();
+
+// The chatroom rides on the page's own HTTP server, so it's same-origin: no
+// second port to expose, and nothing to proxy or point a hostname at.
+const WS_PATH = "/ws";
+const wsServer = new WebSocketServer({ noServer: true });
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -22,13 +26,32 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
+  server.on("upgrade", (req, socket, head) => {
+    // An upgrade socket that errors after we let go of it would otherwise
+    // surface as an uncaughtException.
+    socket.on("error", () => {});
+
+    if (parse(req.url).pathname === WS_PATH) {
+      wsServer.handleUpgrade(req, socket, head, (ws) => {
+        wsServer.emit("connection", ws, req);
+      });
+      return;
+    }
+
+    // Everything else, including Next's dev HMR socket. Handing it to
+    // app.getUpgradeHandler() looks right but NextServer.handleUpgrade is an
+    // empty method -- the real HMR handler is driven by Next's dev
+    // router-server, which a custom server bypasses. Delegating there just
+    // leaks the socket, so close it instead.
+    socket.destroy();
+  });
+
   server.listen(port, (err) => {
     if (err) throw err;
     console.log(`Server is ready on http://localhost:${port}`);
+    console.log(`Chatroom socket on ws://localhost:${port}${WS_PATH}`);
   });
 });
-
-const wsServer = new WebSocketServer({ port: wsPort });
 
 function readCookie(header, name) {
   if (!header) return undefined;

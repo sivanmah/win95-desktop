@@ -4,6 +4,13 @@ import { Message } from "@/types/chat";
 import { toColorKey } from "@/lib/colors";
 import ColorPicker from "../ui/ColorPicker";
 
+// Same origin as the page, so this follows whatever host and port the app is
+// actually served from -- localhost in dev, the real domain in production.
+function chatroomSocketUrl() {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/ws`;
+}
+
 export default function Chatroom({ displayName }: { displayName: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -36,7 +43,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
 
     if (!socketRef.current) {
       console.log("Setting up WebSocket connection...");
-      const socket = new WebSocket("wss://win95-sivan.duckdns.org/ws");
+      const socket = new WebSocket(chatroomSocketUrl());
 
       socketRef.current = socket;
 
