@@ -17,8 +17,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // No sender here on purpose — the server stamps it from the display-name
-    // cookie, so a client can't claim to be someone else.
+    // No sender here on purpose — the server stamps it from the display-name cookie, so a client can't claim to be someone else.
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
         JSON.stringify({

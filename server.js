@@ -15,6 +15,11 @@ const wsPort = Number(process.env.WS_PORT) || 8080;
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+const NAME_COLORS = new Set([
+  "text-blue-500", "text-red-500", "text-green-500", "text-pink-500",
+  "text-gray-500", "text-yellow-500", "text-purple-500", "text-orange-500",
+]);
+
 app.prepare().then(() => {
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
@@ -79,7 +84,7 @@ wsServer.on("connection", (ws, req) => {
     const message = JSON.stringify({
       sender: displayName,
       content: incoming.content,
-      nameColor: incoming.nameColor,
+      nameColor: NAME_COLORS.has(incoming.nameColor) ? incoming.nameColor : "text-blue-500",
       timestamp: new Date().toISOString(),
     });
 
