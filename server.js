@@ -8,17 +8,13 @@ import {
   colors,
   animals,
 } from "unique-names-generator";
+import { NAME_COLORS, toColorKey } from "./src/lib/colors.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
 const wsPort = Number(process.env.WS_PORT) || 8080;
 const app = next({ dev });
 const handle = app.getRequestHandler();
-
-const NAME_COLORS = new Set([
-  "text-blue-500", "text-red-500", "text-green-500", "text-pink-500",
-  "text-gray-500", "text-yellow-500", "text-purple-500", "text-orange-500",
-]);
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -84,7 +80,8 @@ wsServer.on("connection", (ws, req) => {
     const message = JSON.stringify({
       sender: displayName,
       content: incoming.content,
-      nameColor: NAME_COLORS.has(incoming.nameColor) ? incoming.nameColor : "text-blue-500",
+      // toColorKey is total, so this can only ever be one of the eight classes.
+      nameColor: NAME_COLORS[toColorKey(incoming.nameColor)],
       timestamp: new Date().toISOString(),
     });
 

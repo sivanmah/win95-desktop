@@ -1,69 +1,44 @@
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import ColorSwatch from "./ColorSwatch";
+import { NAME_COLORS, DEFAULT_COLOR_KEY, toColorKey } from "@/lib/colors";
+
+type ColorKey = keyof typeof NAME_COLORS;
+
+const COLOR_KEYS = Object.keys(NAME_COLORS) as ColorKey[];
 
 export default function ColorPicker({ displayName }: { displayName: string }) {
-  const [selectedColor, setSelectedColor] = useState("text-blue-500");
+  const [selectedKey, setSelectedKey] = useState<ColorKey>(DEFAULT_COLOR_KEY);
 
   useEffect(() => {
-    const savedColor = Cookies.get("display-name-color");
-    if (savedColor) {
-      setSelectedColor(savedColor);
+    const saved = Cookies.get("display-name-color");
+    if (saved) {
+      setSelectedKey(toColorKey(saved));
     }
   }, []);
 
-  const handleColorSelect = (color: string) => {
-    setSelectedColor(color);
-    Cookies.set("display-name-color", color, { expires: 30 });
+  const handleColorSelect = (colorKey: string) => {
+    const key = toColorKey(colorKey);
+    setSelectedKey(key);
+    // The key, not the class -- the class never crosses the wire.
+    Cookies.set("display-name-color", key, { expires: 30 });
   };
 
   return (
     <div className="border-2 border-black p-1 flex gap-1 items-center">
       <div className="flex flex-col text-sm cursor-default select-none">
         <span>Name color:</span>
-        <span className={selectedColor}>{displayName}</span>
+        <span style={{ color: NAME_COLORS[selectedKey] }}>{displayName}</span>
       </div>
       <div className="grid grid-cols-4 grid-rows-2 gap-1 w-fit">
-        <ColorSwatch
-          text="text-blue-500"
-          bg="bg-blue-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-red-500"
-          bg="bg-red-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-green-500"
-          bg="bg-green-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-pink-500"
-          bg="bg-pink-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-gray-500"
-          bg="bg-gray-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-yellow-500"
-          bg="bg-yellow-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-purple-500"
-          bg="bg-purple-500"
-          onSelect={handleColorSelect}
-        />
-        <ColorSwatch
-          text="text-orange-500"
-          bg="bg-orange-500"
-          onSelect={handleColorSelect}
-        />
+        {COLOR_KEYS.map((colorKey) => (
+          <ColorSwatch
+            key={colorKey}
+            colorKey={colorKey}
+            color={NAME_COLORS[colorKey]}
+            onSelect={handleColorSelect}
+          />
+        ))}
       </div>
     </div>
   );

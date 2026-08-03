@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, FormEvent } from "react";
 import Cookies from "js-cookie";
 import { Message } from "@/types/chat";
+import { toColorKey } from "@/lib/colors";
 import ColorPicker from "../ui/ColorPicker";
 
 export default function Chatroom({ displayName }: { displayName: string }) {
@@ -22,7 +23,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
       socketRef.current.send(
         JSON.stringify({
           content: input,
-          nameColor: Cookies.get("display-name-color") || "text-blue-500",
+          nameColor: toColorKey(Cookies.get("display-name-color")),
         }),
       );
     }
@@ -79,7 +80,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
         {messages.map((msg, i) => (
           <div key={i}>
             <span>
-              <span className={msg.nameColor}>{msg.sender}: </span>
+              <span style={{ color: msg.nameColor }}>{msg.sender}: </span>
               {msg.content}
             </span>
           </div>

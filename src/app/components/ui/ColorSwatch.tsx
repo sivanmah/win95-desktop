@@ -1,18 +1,17 @@
-import { useState } from "react";
-
 export default function ColorSwatch({
-  text,
-  bg,
+  colorKey,
+  color,
   onSelect,
 }: {
-  text: string;
-  bg: string;
-  onSelect: (color: string) => void;
+  colorKey: string;
+  color: string;
+  onSelect: (colorKey: string) => void;
 }) {
   return (
     <div
-      className={`border-black border-2 ${bg} p-2`}
-      onClick={() => onSelect(text)}
+      className="border-black border-2 p-2"
+      style={{ backgroundColor: color }}
+      onClick={() => onSelect(colorKey)}
     ></div>
   );
 }
