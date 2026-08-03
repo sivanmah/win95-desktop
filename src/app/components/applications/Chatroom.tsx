@@ -17,15 +17,15 @@ export default function Chatroom({ displayName }: { displayName: string }) {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const message: Message = {
-      sender: displayName,
-      content: input,
-      timestamp: new Date(),
-      nameColor: Cookies.get("display-name-color") || "text-blue-500",
-    };
-
+    // No sender here on purpose — the server stamps it from the display-name
+    // cookie, so a client can't claim to be someone else.
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(message));
+      socketRef.current.send(
+        JSON.stringify({
+          content: input,
+          nameColor: Cookies.get("display-name-color") || "text-blue-500",
+        }),
+      );
     }
 
     setInput("");
@@ -61,9 +61,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
           receivedMessage = JSON.parse(event.data);
         }
 
-        if (receivedMessage.content && receivedMessage.content.trim()) {
-          setMessages((prevMessages) => [...prevMessages, receivedMessage]);
-        }
+        setMessages((prevMessages) => [...prevMessages, receivedMessage]);
       });
 
       // Cleanup function to run on component unmount
