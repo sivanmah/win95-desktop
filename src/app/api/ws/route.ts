@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import {
   experimental_upgradeWebSocket,
+  type WebSocket,
   type WebSocketData,
 } from "@vercel/functions";
 import {
@@ -24,13 +25,7 @@ const MAX_PAYLOAD_BYTES = 4096;
 
 // Sockets held by *this* function instance. Other instances have their own, which
 // is why every broadcast goes through Redis rather than straight to this set.
-const localSockets = new Set<WebSocketLike>();
-
-interface WebSocketLike {
-  readyState: number;
-  send(data: string): void;
-  on(event: string, listener: (...args: never[]) => void): void;
-}
+const localSockets = new Set<WebSocket>();
 
 const OPEN = 1;
 
@@ -91,16 +86,14 @@ export async function GET() {
 
   return experimental_upgradeWebSocket(
     async (ws) => {
-      const socket = ws as unknown as WebSocketLike;
       const allow = createRateLimiter();
 
-      localSockets.add(socket);
+      localSockets.add(ws);
       ensureSubscribed(fanOutToLocalSockets);
 
       try {
-        for (const message of await readHistory()) {
-          socket.send(JSON.stringify(message));
-        }
+        const history = await readHistory();
+        history.forEach((message) => ws.send(JSON.stringify(message)));
       } catch (error) {
         console.error("Failed to replay history:", error);
       }
@@ -140,12 +133,12 @@ export async function GET() {
       });
 
       ws.on("close", () => {
-        localSockets.delete(socket);
+        localSockets.delete(ws);
       });
 
       ws.on("error", (error: Error) => {
         console.error("WebSocket error:", error);
-        localSockets.delete(socket);
+        localSockets.delete(ws);
       });
     },
     { maxPayload: MAX_PAYLOAD_BYTES }
