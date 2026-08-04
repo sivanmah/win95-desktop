@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import Cookies from "js-cookie";
 import ColorSwatch from "./ColorSwatch";
 import { NAME_COLORS, DEFAULT_COLOR_KEY, toColorKey } from "@/lib/colors";
@@ -6,22 +6,39 @@ import { NAME_COLORS, DEFAULT_COLOR_KEY, toColorKey } from "@/lib/colors";
 type ColorKey = keyof typeof NAME_COLORS;
 
 const COLOR_KEYS = Object.keys(NAME_COLORS) as ColorKey[];
+const COLOR_COOKIE = "display-name-color";
+// Cookies emit no change event of their own, so picking a colour dispatches
+// this to tell every mounted picker to re-read.
+const COLOR_CHANGE_EVENT = "display-name-color-change";
+
+function subscribe(onChange: () => void) {
+  window.addEventListener(COLOR_CHANGE_EVENT, onChange);
+  return () => window.removeEventListener(COLOR_CHANGE_EVENT, onChange);
+}
+
+function getSnapshot(): ColorKey {
+  return toColorKey(Cookies.get(COLOR_COOKIE));
+}
+
+// There is no cookie to read while rendering on the server, so the server
+// renders the default and hydration corrects it without a mismatch.
+function getServerSnapshot(): ColorKey {
+  return DEFAULT_COLOR_KEY;
+}
 
 export default function ColorPicker({ displayName }: { displayName: string }) {
-  const [selectedKey, setSelectedKey] = useState<ColorKey>(DEFAULT_COLOR_KEY);
-
-  useEffect(() => {
-    const saved = Cookies.get("display-name-color");
-    if (saved) {
-      setSelectedKey(toColorKey(saved));
-    }
-  }, []);
+  // Reading the cookie in an effect and calling setState is what React 19
+  // flags as a cascading render; this subscribes to it as external state.
+  const selectedKey = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
   const handleColorSelect = (colorKey: string) => {
-    const key = toColorKey(colorKey);
-    setSelectedKey(key);
     // The key, not the class -- the class never crosses the wire.
-    Cookies.set("display-name-color", key, { expires: 30 });
+    Cookies.set(COLOR_COOKIE, toColorKey(colorKey), { expires: 30 });
+    window.dispatchEvent(new Event(COLOR_CHANGE_EVENT));
   };
 
   return (

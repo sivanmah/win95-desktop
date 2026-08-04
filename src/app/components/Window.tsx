@@ -20,7 +20,9 @@ export default function Window({
 }) {
   const [zIndex, setZIndex] = useState(globalZIndex);
   const [position, setPosition] = useState({ x: 20, y: 20 });
-  const nodeRef = useRef(null);
+  // Typed explicitly: React 19's types infer useRef(null) as RefObject<null>,
+  // which no longer satisfies react-draggable's RefObject<HTMLElement>.
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   const bringToFront = () => {
     globalZIndex += 1;

@@ -26,7 +26,6 @@ export default function StartMenuButton({
         })}
         onClick={onClick}
       >
-        {/* eslint-disable-next-line */}
         <Image src={startIcon} alt="Start Menu" width={24} draggable={false} />
         Start
       </div>

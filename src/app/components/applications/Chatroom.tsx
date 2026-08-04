@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import Cookies from "js-cookie";
 import { Message } from "@/types/chat";
 import { toColorKey } from "@/lib/colors";
@@ -29,69 +29,76 @@ export default function Chatroom({ displayName }: { displayName: string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
   }, [messages]);
 
-  // Vercel closes every socket when the function hits its max duration -- 5
-  // minutes on Hobby -- so reconnecting is the normal case, not an error path.
-  const connect = useCallback(() => {
-    if (unmountedRef.current) return;
-
-    setStatus("connecting");
-    const socket = new WebSocket(chatroomSocketUrl());
-    socketRef.current = socket;
-    let reconnectDelay = INITIAL_RECONNECT_DELAY;
-
-    const keepAlive = setInterval(() => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: "keepalive" }));
-      }
-    }, 30000);
-
-    socket.addEventListener("open", () => {
-      reconnectDelay = INITIAL_RECONNECT_DELAY;
-      setStatus("open");
-    });
-
-    socket.addEventListener("message", async (event: MessageEvent) => {
-      const text =
-        event.data instanceof Blob ? await event.data.text() : event.data;
-
-      let received: Message;
-      try {
-        received = JSON.parse(text);
-      } catch {
-        return;
-      }
-
-      // Reconnecting replays recent history, so drop anything already shown.
-      setMessages((previous) =>
-        previous.some((message) => message.id === received.id)
-          ? previous
-          : [...previous, received]
-      );
-    });
-
-    socket.addEventListener("close", () => {
-      clearInterval(keepAlive);
-      if (unmountedRef.current) return;
-
-      setStatus("closed");
-      setTimeout(connect, reconnectDelay);
-      reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
-    });
-
-    // 'close' always follows 'error', so reconnection is handled there.
-    socket.addEventListener("error", () => socket.close());
-  }, []);
-
   useEffect(() => {
     unmountedRef.current = false;
+
+    // Held across reconnects rather than inside connect(), so the backoff
+    // actually escalates -- a local would be reset to 1s on every attempt.
+    let reconnectDelay = INITIAL_RECONNECT_DELAY;
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Vercel closes every socket when the function hits its max duration -- 5
+    // minutes on Hobby -- so reconnecting is the normal case, not an error path.
+    // A function declaration, so the close handler below can refer to it.
+    function connect() {
+      if (unmountedRef.current) return;
+
+      setStatus("connecting");
+      const socket = new WebSocket(chatroomSocketUrl());
+      socketRef.current = socket;
+
+      const keepAlive = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "keepalive" }));
+        }
+      }, 30000);
+
+      socket.addEventListener("open", () => {
+        reconnectDelay = INITIAL_RECONNECT_DELAY;
+        setStatus("open");
+      });
+
+      socket.addEventListener("message", async (event: MessageEvent) => {
+        const text =
+          event.data instanceof Blob ? await event.data.text() : event.data;
+
+        let received: Message;
+        try {
+          received = JSON.parse(text);
+        } catch {
+          return;
+        }
+
+        // Reconnecting replays recent history, so drop anything already shown.
+        setMessages((previous) =>
+          previous.some((message) => message.id === received.id)
+            ? previous
+            : [...previous, received]
+        );
+      });
+
+      socket.addEventListener("close", () => {
+        clearInterval(keepAlive);
+        if (unmountedRef.current) return;
+
+        setStatus("closed");
+        reconnectTimer = setTimeout(connect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
+      });
+
+      // 'close' always follows 'error', so reconnection is handled there.
+      socket.addEventListener("error", () => socket.close());
+    }
+
     connect();
 
     return () => {
       unmountedRef.current = true;
+      clearTimeout(reconnectTimer);
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [connect]);
+  }, []);
 
   const sendMessage = (e: FormEvent) => {
     e.preventDefault();
