@@ -5,7 +5,8 @@
   "type": "module",
   "packageManager": "pnpm@10.27.0",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "next dev",
+    "dev:chat": "vercel dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

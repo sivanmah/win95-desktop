@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Built on first request, not at import. The constructor throws when the key is
+// missing, and `next build` imports every route module -- so doing this at module
+// scope fails the whole build on any machine without OPENAI_API_KEY set.
+let openai: OpenAI | null = null;
+function getOpenAI() {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
 
 export async function POST(request: Request) {
   const { messages } = await request.json();
 
   try {
-    const chatCompletion = await openai.chat.completions.create({
+    const chatCompletion = await getOpenAI().chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages,
     });

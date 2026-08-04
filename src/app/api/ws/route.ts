@@ -43,13 +43,26 @@ function generateDisplayName() {
   });
 }
 
-/** Rejects handshakes from other sites. Same-origin only, since the page and the socket share a host. */
+/**
+ * Rejects handshakes from other sites. Same-origin only, since the page and the
+ * socket share a host.
+ *
+ * Compares against x-forwarded-host, not host: both Vercel and `vercel dev` put
+ * the function behind a proxy, so `host` is the proxy's own socket address
+ * ("[::1]:3000" locally) and never matches the browser's Origin.
+ *
+ * A browser cannot set x-forwarded-host -- the WebSocket API allows no custom
+ * headers -- so it can't be forged by the cross-site scripts this guards against.
+ */
 function isSameOrigin(requestHeaders: Headers) {
   const origin = requestHeaders.get("origin");
   if (!origin) return true; // Non-browser clients don't send it.
 
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+
   try {
-    return new URL(origin).host === requestHeaders.get("host");
+    return new URL(origin).host === host;
   } catch {
     return false;
   }
@@ -91,14 +104,7 @@ export async function GET() {
       localSockets.add(ws);
       ensureSubscribed(fanOutToLocalSockets);
 
-      try {
-        const history = await readHistory();
-        history.forEach((message) => ws.send(JSON.stringify(message)));
-      } catch (error) {
-        console.error("Failed to replay history:", error);
-      }
-
-      ws.on("message", async (data: WebSocketData) => {
+      async function handleMessage(data: WebSocketData) {
         let incoming;
         try {
           incoming = JSON.parse(data.toString());
@@ -130,7 +136,36 @@ export async function GET() {
         } catch (error) {
           console.error("Failed to broadcast message:", error);
         }
+      }
+
+      // Attached synchronously, before the history await below. `ws` drops
+      // events that have no listener, so registering after the await would
+      // silently discard anything sent during that round trip.
+      let replayed = false;
+      const buffered: WebSocketData[] = [];
+
+      ws.on("message", (data: WebSocketData) => {
+        if (!replayed) {
+          buffered.push(data);
+          return;
+        }
+        void handleMessage(data);
       });
+
+      try {
+        const history = await readHistory();
+        history.forEach((message) => ws.send(JSON.stringify(message)));
+      } catch (error) {
+        console.error("Failed to replay history:", error);
+      }
+
+      // Ordered after the replay so a client never sees its own message before
+      // the backlog it was replying to.
+      replayed = true;
+      for (const data of buffered) {
+        await handleMessage(data);
+      }
+      buffered.length = 0;
 
       ws.on("close", () => {
         localSockets.delete(ws);

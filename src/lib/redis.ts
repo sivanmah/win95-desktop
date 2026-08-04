@@ -14,7 +14,7 @@ function connectionUrl() {
   const url = process.env.REDIS_URL;
   if (!url) {
     throw new Error(
-      "REDIS_URL is not set. Run `vercel env pull .env.local` after adding the Upstash integration."
+      "REDIS_URL is not set. Run `vercel env pull` after adding the Upstash integration."
     );
   }
   return url;
