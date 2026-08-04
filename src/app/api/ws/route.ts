@@ -43,29 +43,57 @@ function generateDisplayName() {
   });
 }
 
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+function isLoopback(host: string) {
+  return LOOPBACK_HOSTNAMES.has(host.replace(/:\d+$/, "").toLowerCase());
+}
+
 /**
- * Rejects handshakes from other sites. Same-origin only, since the page and the
- * socket share a host.
+ * Rejects handshakes from other sites.
  *
- * Compares against x-forwarded-host, not host: both Vercel and `vercel dev` put
- * the function behind a proxy, so `host` is the proxy's own socket address
- * ("[::1]:3000" locally) and never matches the browser's Origin.
+ * Deliberately not a comparison against a single header. Upgrades reach this
+ * function through a proxy that rewrites both `host` and `x-forwarded-host` to
+ * its own socket address -- under `vercel dev` they are literally "[::1]:3000"
+ * while the browser's Origin is "localhost:3000" -- so any one header is an
+ * unreliable stand-in for the host the browser actually asked for. Instead,
+ * collect every host that could legitimately serve this app and check Origin
+ * against the set.
  *
- * A browser cannot set x-forwarded-host -- the WebSocket API allows no custom
- * headers -- so it can't be forged by the cross-site scripts this guards against.
+ * A browser cannot forge any of these: the WebSocket API sends no custom
+ * headers, and Origin is set by the browser itself.
  */
-function isSameOrigin(requestHeaders: Headers) {
+function isAllowedOrigin(requestHeaders: Headers) {
   const origin = requestHeaders.get("origin");
   if (!origin) return true; // Non-browser clients don't send it.
 
-  const host =
-    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-
+  let originHost: string;
   try {
-    return new URL(origin).host === host;
+    originHost = new URL(origin).host.toLowerCase();
   } catch {
     return false;
   }
+
+  // Local development, where the proxy hides the real host entirely.
+  if (process.env.VERCEL_ENV !== "production" && isLoopback(originHost)) {
+    return true;
+  }
+
+  const allowed = new Set(
+    [
+      requestHeaders.get("x-forwarded-host"),
+      requestHeaders.get("host"),
+      // Set by Vercel; covers the production domain, this deployment's own
+      // URL, and the branch alias.
+      process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      process.env.VERCEL_URL,
+      process.env.VERCEL_BRANCH_URL,
+    ]
+      .filter((host): host is string => Boolean(host))
+      .map((host) => host.toLowerCase())
+  );
+
+  return allowed.has(originHost);
 }
 
 /** Token bucket per connection. A connection stays pinned to one instance, so in-memory is fine. */
@@ -87,7 +115,7 @@ function createRateLimiter(limit = 10, windowMs = 10_000) {
 
 export async function GET() {
   const requestHeaders = await headers();
-  if (!isSameOrigin(requestHeaders)) {
+  if (!isAllowedOrigin(requestHeaders)) {
     return new Response("Forbidden", { status: 403 });
   }
 

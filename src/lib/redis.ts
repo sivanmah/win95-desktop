@@ -1,5 +1,4 @@
 import { Redis } from "ioredis";
-import { attachDatabasePool } from "@vercel/functions";
 import type { Message } from "@/types/chat";
 
 export const CHAT_CHANNEL = "chat:messages";
@@ -24,8 +23,13 @@ function connectionUrl() {
 // `next build`, where the env var isn't necessarily present yet.
 function createClient() {
   const client = new Redis(connectionUrl());
-  // Lets Fluid compute release the connection when the instance suspends.
-  attachDatabasePool(client);
+  // No attachDatabasePool() here: it detects a Redis client by looking for
+  // `options.socket`, which is node-redis's shape. ioredis puts host and port
+  // at the top level of `options`, so it falls through every branch and throws
+  // "Unsupported database pool type", taking the whole upgrade down with it.
+  // The cost of leaving it off is that idle connections are not released early
+  // when a Fluid instance suspends; Upstash drops idle connections on its own
+  // and ioredis reconnects, so this is an optimisation rather than a leak.
   client.on("error", (error) => console.error("Redis error:", error));
   return client;
 }
