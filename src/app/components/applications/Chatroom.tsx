@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, SubmitEvent } from "react";
 import Cookies from "js-cookie";
 import { Message } from "@/types/chat";
 import { toColorKey } from "@/lib/colors";
@@ -100,7 +100,7 @@ export default function Chatroom({ displayName }: { displayName: string }) {
     };
   }, []);
 
-  const sendMessage = (e: FormEvent) => {
+  const sendMessage = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const content = input.trim();
