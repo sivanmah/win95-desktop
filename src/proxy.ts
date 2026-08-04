@@ -7,7 +7,7 @@ import {
   animals,
 } from "unique-names-generator";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const randomName = uniqueNamesGenerator({
     dictionaries: [adjectives, colors, animals],
     separator: "",
